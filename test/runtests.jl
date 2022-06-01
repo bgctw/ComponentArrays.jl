@@ -594,28 +594,68 @@ end
 
 @testset "getindex_axis ComponentVector" begin
     cv = ComponentVector(a=(a1=100,a2=(a21=210, a22=220)), b=2, c = (c1=reshape(1:4,(2,2)),))
-    cr = cv[cv]
+    # cvn = ComponentArray(
+    #     NamedArray(getdata(cv), (Symbol.(1:length(cv)),)), getaxes(cv))
+    cr = cv[first(getaxes(cv))]
     @test  cr == cv
     cr.a.a1 = 3100;  @test cv.a.a1 == 100 # does not modify original cv
     # extract a single nested component
     # construct Axis by template ComponentVector
     cs = ComponentVector(a=(a2=(a22=1,),)) # the "," is important to make it a tuple
-    cr = cv[cs]
+    cr = cv[first(getaxes(cs))]
     @test axes(cr) == axes(cs)
     @test cr.a.a2.a22 == cv.a.a2.a22
+    # cr = cvn[first(getaxes(cs))]
+    # @test axes(cr) == axes(cs)
+    # @test cr.a.a2.a22 == cv.a.a2.a22
+    # @test getdata(cr) isa NamedVector
     # extract shaped component
-    @test cv[Axis(:c)].c == cv.c
+    @test cv[Axis(c=1:4)].c == cv.c
     # extract two upper-level components with structure
-    cr = cv[Axis(:a,:c)] # :b not include
+    cr = cv[Axis(a=1:3,c=1:4)] # :b not include
     @test keys(cr) == (:a,:c)
-    @test first(axes(cr.a)) == first(axes(cv.a))
+    @test first(getaxes(cr.a)) == first(getaxes(cv.a))
     @test cr.a == cv.a
     @test cr.a.a1 == cv.a.a1
     # TODO: documentation do not forget comma for tuple
-    cv[ComponentVector(a=(a1=1,))] # the "," is important to make it a tuple
+    cv[first(getaxes(ComponentVector(a=(a1=1,))))] # the "," is important to make it a tuple
     # wrongly extracts full a including a1 including a2, because there is no a1 in axis
-    cv[ComponentVector(a=(a1=1))] 
+    @test_throws ErrorException cv[first(getaxes(ComponentVector(a=(a1=1))))] 
+    #
+    cs = ComponentVector(a=(aTypo=1,)) # the "," is important to make it a tuple
+    @test_throws ErrorException cv[first(getaxes(cs))] # has aTypo in error message
+    #
+    # wrong length of axis
+    cv = ComponentVector(a=(a1=1,a2=2,a3=3),b=20)
+    cv[Axis(a=1:3)] # correct lenght ok without subindices
+    @test_throws ErrorException cv[Axis(a=1)] # how to check length
+
+    cv2 = ComponentVector(a=(a1=100,a2=(a21=210, a22=reshape(1:4,(2,2))),a3=300), b=3, c=4)
+    # extracting some of the nested a-components and the b component
+    # note that I do not specify the structure of a2
+    cv_indextemplate = ComponentVector(a=(a2=1:5, a3=1), b=1)
+    ax = first(getaxes(cv_indextemplate)) # todo specify without template
+    cv_sub = cv2[ax]
 end
+
+@testset "_get_index_axis OffsetArray" begin
+    part_ax = PartitionedAxis(2, Axis(a = 1, b = 2))
+    oaca = ComponentArray(OffsetArray(collect(1:5), -1), Axis(a = 0, b = ViewAxis(1:4, part_ax)))
+    tmp = oaca[Axis(b=1:4)]
+    
+end
+
+tmp_issue_lazyArray = () -> begin
+    #using ComponentArrays
+    boid = ComponentArray(pos=zeros(2), vel=zeros(2))   
+    u0 = ComponentArray(boids=repeat([boid], 2))    
+    u0.boids
+    tmp = u0[KeepIndex(:boids)]
+
+    ax = first(getaxes(u0))
+    CA.reindex(ax,1)
+end
+
 
 @testset "Autodiff" begin
     include("autodiff_tests.jl")
