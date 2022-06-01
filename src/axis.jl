@@ -182,6 +182,8 @@ Base.lastindex(ax::CombinedAxis) = lastindex(_array_axis(ax))
 
 Base.getindex(ax::CombinedAxis, i::Integer) = _array_axis(ax)[i]
 Base.getindex(ax::CombinedAxis, i::AbstractArray) = _array_axis(ax)[i]
+# against ambiguities with getindex(r::AbstractUnitRange, s::AbstractUnitRange{T}) where T<:Integer in Base at range.jl:916
+Base.getindex(ax::CombinedAxis, i::AbstractUnitRange{T}) where T<:Integer = _array_axis(ax)[i]
 
 Base.length(ax::CombinedAxis) = lastindex(ax) - firstindex(ax) + 1
 

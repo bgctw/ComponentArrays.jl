@@ -7,6 +7,7 @@ using StaticArrays
 using OffsetArrays
 using Test
 using Unitful
+using NamedArrays # test keeping underlying AbstractArray during subsetting
 
 
 ## Test setup
@@ -617,6 +618,19 @@ end
     @test first(getaxes(cr.a)) == first(getaxes(cv.a))
     @test cr.a == cv.a
     @test cr.a.a1 == cv.a.a1
+    #
+    # test extracting more than two indices - for vcat preserving base type
+    function _get_axis_of_lengths_for_syms(cv::ComponentVector, syms=keys(cv)) 
+        gl = (1:length(getproperty(cv, s)) for s in syms)
+        Axis(;NamedTuple{syms}(gl)...)         
+    end
+    #@test cv[_get_axis_of_lengths_for_syms(cv)] == cv # ViewAxis 1:1:3 vs 1:3
+    @test all(cv[_get_axis_of_lengths_for_syms(cv)] .== cv) # ViewAxis 1:1:3 vs 1:3
+    #tmpf(cv, ax) = cv[ax] 
+    #using Cthulhu
+    #@descend_code_warntype tmpf(cv, _get_axis_of_lengths_for_syms(cv))
+    #cr = @inferred tmpf(cv, _get_axis_of_lengths_for_syms(cv))
+
     # TODO: documentation do not forget comma for tuple
     cv[first(getaxes(ComponentVector(a=(a1=1,))))] # the "," is important to make it a tuple
     # wrongly extracts full a including a1 including a2, because there is no a1 in axis
@@ -639,10 +653,28 @@ end
 end
 
 @testset "_get_index_axis OffsetArray" begin
-    part_ax = PartitionedAxis(2, Axis(a = 1, b = 2))
-    oaca = ComponentArray(OffsetArray(collect(1:5), -1), Axis(a = 0, b = ViewAxis(1:4, part_ax)))
-    tmp = oaca[Axis(b=1:4)]
-    
+    # part_ax = PartitionedAxis(2, Axis(a = 1, b = 2))
+    # oaca = ComponentArray(OffsetArray(collect(1:5), -1), Axis(a = 0, b = ViewAxis(1:4, part_ax)))
+    # tmp = oaca[Axis(b=1:4)]
+    oaca = ComponentArray(OffsetArray(collect(1:5), -1), Axis(a = 0, b=1:2, c=3, d=4))
+    oaca[KeepIndex(:b)] |> typeof # does not preserve underlying OffsetArray
+end
+
+@testset "_get_index_axis NamedArray" begin
+    na = NamedArray(1:3, ([:a1,:a2,:a3],))
+    cv = ComponentVector(na, Axis(:b1,:b2,:b3))
+    c2 = cv[KeepIndex(:b2)]
+    @test getdata(c2)[:a2] == 2
+    # preserves underlying AbstractArray type: NamedArray
+    cr = cv[Axis(:b1,:b2,:b3)]
+    @test getdata(cr)[:a3] == 3
+end
+
+@testset "_get_index_axis LabelledArray" begin
+    na = SLVector(a1=1.1, a2=2.2, a3=3.3)
+    cv = ComponentVector(na, Axis(:b1,:b2,:b3))
+    c2 = cv[KeepIndex(:b2)]
+    typeof(getdata(c2)) # does not preserve Array base type
 end
 
 tmp_issue_lazyArray = () -> begin
