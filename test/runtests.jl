@@ -7,6 +7,7 @@ using StaticArrays
 using OffsetArrays
 using Test
 using Unitful
+using NamedArrays
 
 
 ## Test setup
@@ -590,6 +591,22 @@ end
     # Issue #100
     chol = cholesky(cmat + I)
     @test convert(Cholesky{Float32,Matrix{Float32}}, chol).factors isa Matrix{Float32}
+end
+
+@testset "KeepIndices" begin
+    cv = ComponentVector(a=(a1=100,a2=(a21=210, a22=reshape(1:4,(2,2))),a3=300), b=3, c=4)
+    @test_throws AssertionError KeepIndices(3) # only allow symbols
+    @test cv[KeepIndices()] == cv
+    @test cv[KeepIndices(:b)] == cv[KeepIndex(:b)]
+    cv_sub = cv[KeepIndices(:a,:b)]
+    cv_subt = vcat(cv[KeepIndex(:a)],cv[KeepIndex(:b)])
+    @test cv_sub == cv_subt # different ViewAxis indexrange 1:1:7 vs 1:7
+    cv_sub = cv[KeepIndices([:a,:b])]
+    #
+    # tet whether underlying array type is preerved by using a NamedArray
+    cvn = ComponentVector(NamedArray(getdata(cv),(labels(cv),)), getaxes(cv))
+    cvn_sub = cvn[KeepIndices(:a,:b, :c)] # 3 comp to test proper reduce rather than vcat
+    @test getdata(cvn_sub) isa NamedArray
 end
 
 @testset "Autodiff" begin

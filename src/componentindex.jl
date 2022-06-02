@@ -43,3 +43,25 @@ function _getindex_keep(ax::AbstractAxis, sym::Symbol)
     new_ax = reindex(new_ax, -first(idx)+1)
     return ComponentIndex(idx, new_ax)
 end
+
+struct KeepIndices{Idx} end
+KeepIndices(idx::Symbol) = KeepIndex{idx}() # just one symbol -> use KeepIndex
+KeepIndices(idx...) = KeepIndices(idx)
+function KeepIndices(idx) 
+    @assert all(s isa Symbol for s in idx)
+    if !(idx isa Tuple); idx = tuple(idx...); end
+    KeepIndices{idx}()
+end
+
+
+Base.getindex(cv::ComponentVector, i::KeepIndices{Idx}) where {Idx} = _getindex_keeps(cv, i)
+
+function _getindex_keeps(cv::ComponentVector{T}, ::KeepIndices{syms}) where {T,syms}
+    syms == () && return(copy(cv))
+    g = map(syms) do sym
+        cv[KeepIndex(sym)]
+    end
+    reduce(vcat, g)::ComponentVector{T}
+end
+
+
