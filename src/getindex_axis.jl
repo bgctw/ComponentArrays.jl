@@ -4,7 +4,7 @@ Base.getindex(cv::ComponentVector, ax::AbstractAxis) = _get_index_axis(cv,ax)
 #     cv,first(getaxes(cv_template)))
 
 function _get_index_axis(cv::CT, ax::AbstractAxis) where {T,CT<:ComponentVector{T}}
-    first(getaxes(cv)) == ax && return(copy(cv)::CT) # no need to reassamble
+    first(getaxes(cv)) == ax && return(copy(cv)::ComponentVector{T}) # no need to reassamble
     # extract subvectors and reassamble
     keys_ax = keys(ax)
     # k = keys_ax[1]
@@ -35,4 +35,31 @@ _get_index_axis(x, ax::NullorFlatAxis) = error("unexpected dispatch")#x
 # in order to extract entire component, do not need to specify subaxes, but length must match
 # e.g. (a=1:2) to match entire (a=(a1=1, a2=2))
 _get_index_axis(cv::ComponentVector, ax::NullorFlatAxis) = cv 
+
+subaxis(ax::AbstractAxis, syms) = _subaxis(ax, syms)
+subaxis(ax::AbstractAxis, sym::Symbol) = _subaxis(ax, (sym,))
+subaxis(cv::ComponentVector, syms) = subaxis(first(getaxes(cv)), syms)
+
+function _subaxis(ax::Axis,syms)
+    is_missing = map(s -> !(s ∈ keys(ax)), syms)
+    any(is_missing) && error(
+        "Expected subcomponents to be among keys(ax)=$(keys(ax)). Failed for " * 
+        "$([s for (m,s) in zip(is_missing, syms) if m])")
+    length_axs = NamedTuple{keys(indexmap(ax))}(map(length, indexmap(ax)))
+    # start positions of subaxes in original and in target axis
+    start_axs = NamedTuple{keys(length_axs)}(
+        cumsum(vcat(1,collect(length_axs)[1:end-1])))
+    start_axt = NamedTuple{syms}(cumsum(
+        vcat(1,[p.second for p in pairs(length_axs) if p.first ∈ syms])[1:end-1]))
+    nts = map(syms) do sym
+        ax_sym = indexmap(ax)[sym]
+        reindex(ax_sym, start_axt[sym]-start_axs[sym])
+    end
+    Axis(NamedTuple{syms}(nts))
+end
+
+Base.length(ax::AbstractAxis) = lastindex(ax) - firstindex(ax) + 1
+
+
+
 

@@ -9,6 +9,8 @@ using Requires
 const FlatIdx = Union{Int, CartesianIndex, AbstractArray}
 const FlatOrColonIdx = Union{FlatIdx, Colon}
 
+import Base: length
+
 
 include("utils.jl")
 export fastindices # Deprecated
@@ -50,6 +52,7 @@ export labels, label2index
 include("compat/chainrulescore.jl")
 
 include("getindex_axis.jl")
+export subaxis, KeepIndices
 
 required(filename) = include(joinpath("compat", filename))
 

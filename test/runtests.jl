@@ -593,6 +593,44 @@ end
     @test convert(Cholesky{Float32,Matrix{Float32}}, chol).factors isa Matrix{Float32}
 end
 
+@testset "subaxis" begin
+    # indexmap = CA.indexmap # debugging in REPL
+    # reindex = CA.reindex
+    cv = ComponentVector(a=1:2,b=2)
+    ax = first(getaxes(cv))
+    @test subaxis(ax, :a) == Axis(a=1:2)
+    @test subaxis(ax, :b) == Axis(b=1)
+    #
+    cv = ComponentVector(a=1:2,b=1:2)
+    axt = first(getaxes(cv[KeepIndex(:b)]))
+    ax = first(getaxes(cv))
+    @test subaxis(ax, :b) == axt #only with reindex fix #134
+    #
+    cv = ComponentVector(a=1:2,b=(b1=21,b22=1:2))
+    ax = first(getaxes(cv))
+    @test subaxis(ax, :b) == Axis(b = ViewAxis(1:3, Axis(b1 = 1,b22 = 2:3)),)
+    #
+    cv = ComponentVector(a=1:2,b=[(b1=1:2,),(b1=1:2,)])
+    axt = first(getaxes(ComponentVector(b=[(b1=1:2,),(b1=1:2,)])))
+    ax = first(getaxes(cv))
+    @test subaxis(ax, :b) == axt #only with reindex fix #134
+    #
+    # Multidimenstional PartitionedAxis currently not supported
+    # cv = ComponentVector(a=1:2,b=reshape(fill((b1=1:3,),6),2,3))
+    # ax = first(getaxes(cv))
+    # axt = first(getaxes(cv[KeepIndex(:b)]))
+    # @test subaxis(ax, :b) == axt #only with reindex fix #134
+    #
+    cv = ComponentVector(a=1:2,b=(b1=21,b22=1:2),c=1:2)
+    ax = first(getaxes(cv))
+    axt = first(getaxes(vcat(cv[KeepIndex(:b)], cv[KeepIndex(:c)])))
+    @test subaxis(ax, (:b,:c)) == axt
+    @test subaxis(cv, (:b,:c)) == axt
+    subaxis(cv, (:b,:c))
+    #
+    cv[subaxis(cv,(:b,:c))]
+end;
+
 @testset "getindex_axis ComponentVector" begin
     cv = ComponentVector(a=(a1=100,a2=(a21=210, a22=220)), b=2, c = (c1=reshape(1:4,(2,2)),))
     # cvn = ComponentArray(
@@ -620,13 +658,8 @@ end
     @test cr.a.a1 == cv.a.a1
     #
     # test extracting more than two indices - for vcat preserving base type
-    function _get_axis_of_lengths_for_syms(cv::ComponentVector, syms=keys(cv)) 
-        gl = (1:length(getproperty(cv, s)) for s in syms)
-        Axis(;NamedTuple{syms}(gl)...)         
-    end
-    #@test cv[_get_axis_of_lengths_for_syms(cv)] == cv # ViewAxis 1:1:3 vs 1:3
-    @test all(cv[_get_axis_of_lengths_for_syms(cv)] .== cv) # ViewAxis 1:1:3 vs 1:3
-    #tmpf(cv, ax) = cv[ax] 
+    @test cv[subaxis(cv, keys(cv))] == cv 
+    #@test all(cv[subaxis(cv, keys(cv))] .== cv) # ViewAxis 1:1:3 vs 1:3
     #using Cthulhu
     #@descend_code_warntype tmpf(cv, _get_axis_of_lengths_for_syms(cv))
     #cr = @inferred tmpf(cv, _get_axis_of_lengths_for_syms(cv))
@@ -650,6 +683,7 @@ end
     cv_indextemplate = ComponentVector(a=(a2=1:5, a3=1), b=1)
     ax = first(getaxes(cv_indextemplate)) # todo specify without template
     cv_sub = cv2[ax]
+    #
 end
 
 @testset "_get_index_axis OffsetArray" begin
@@ -687,7 +721,6 @@ tmp_issue_lazyArray = () -> begin
     ax = first(getaxes(u0))
     CA.reindex(ax,1)
 end
-
 
 @testset "Autodiff" begin
     include("autodiff_tests.jl")
