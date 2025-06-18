@@ -936,6 +936,10 @@ end
     @test_throws ArgumentError axpby!(2, x, 3, y)
 end
 
+@testset "Empty NamedTuple" begin
+    @test ComponentArray(NamedTuple()) isa ComponentVector{Float32}
+end
+
 @testset "Functors" begin
     for carray in (ca, ca_Float32, ca_MVector, ca_SVector, ca_composed, ca2, caa)
         θ, re = Functors.functor(carray)
