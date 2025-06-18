@@ -59,6 +59,13 @@ function ComponentArray(data, ax::AbstractAxis...)
     return LazyArray(ComponentArray(x, axs...) for x in part_data)
 end
 
+# This code-path is hit for empty NamedTuples. We force a Float32 eltype here if
+# length(data) == 0
+function ComponentArray(data::Vector{Any}, axes::Tuple{FlatAxis})
+    length(data) == 0 && return ComponentArray(Float32[], axes)
+    return ComponentArray{Any,1,typeof(data),typeof(axes)}(data, axes)
+end
+
 function Adapt.adapt_structure(to, x::ComponentArray)
     data = Adapt.adapt(to, getdata(x))
     return ComponentArray(data, getaxes(x))
