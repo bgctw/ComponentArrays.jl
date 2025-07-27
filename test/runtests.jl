@@ -726,7 +726,7 @@ end
     @test ndims(dropdims(ones(1,1), dims=(1,2))) == 0
     @test reshape([1]) == fill(1, ())
 
-    if VERSION >= v"1.9"
+    # Tests for stack function (introduced in Julia 1.9, always available in Julia 1.10+)
         # `stack` was introduced in Julia 1.9
         # Issue #254
         x = ComponentVector(a=[1, 2])
@@ -851,7 +851,6 @@ end
         @test all(Xstack4_dcolon .== Xstack4_noca_dcolon)
         @test all(Xstack4_dcolon[:a, :, :] .== Xstack4_noca_dcolon[1, :, :])
         @test all(Xstack4_dcolon[:b, :, :] .== Xstack4_noca_dcolon[2:3, :, :])
-    end
 
     # Test that we maintain higher-order components during vcat.
     x = ComponentVector(a=rand(Float64, 2, 3, 4), b=rand(Float64, 4, 3, 2))
