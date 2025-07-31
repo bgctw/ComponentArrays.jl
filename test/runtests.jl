@@ -19,9 +19,11 @@ r2v(r::AbstractUnitRange) = ViewAxis(r, ShapedAxis(size(r)))
 ## Test setup
 c = (a = (a = 1, b = [1.0, 4.4]), b = [0.4, 2, 1, 45])
 nt = (a = 100, b = [4, 1.3], c = c)
-nt2 = (a = 5, b = [(a = (a = 20, b = 1), b = 0), (a = (a = 33, b = 1), b = 0)], c = (a = (a = 2, b = [1, 2]), b = [1.0 2.0; 5 6]))
+nt2 = (a = 5, b = [(a = (a = 20, b = 1), b = 0), (a = (a = 33, b = 1), b = 0)],
+    c = (a = (a = 2, b = [1, 2]), b = [1.0 2.0; 5 6]))
 
-ax = Axis(a = 1, b = r2v(2:3), c = ViewAxis(4:10, (a = ViewAxis(1:3, (a = 1, b = r2v(2:3))), b = r2v(4:7))))
+ax = Axis(a = 1, b = r2v(2:3), c = ViewAxis(4:10, (
+    a = ViewAxis(1:3, (a = 1, b = r2v(2:3))), b = r2v(4:7))))
 ax_c = (a = ViewAxis(1:3, (a = 1, b = r2v(2:3))), b = r2v(4:7))
 
 a = Float64[100, 4, 1.3, 1, 1, 4.4, 0.4, 2, 1, 45]
@@ -42,7 +44,7 @@ caa = ComponentArray(a = ca, b = sq_mat)
 
 _a, _b, _c = Val.((:a, :b, :c))
 
-ca3 = ComponentArray(a=1, b=[2, 3, 4, 5], c=reshape(6:11, 3, 2))
+ca3 = ComponentArray(a = 1, b = [2, 3, 4, 5], c = reshape(6:11, 3, 2))
 cmat3 = ca3 .* ca3'
 cmat3check = (1:11) .* (1:11)'
 
@@ -61,12 +63,15 @@ end
     @test_deprecated ComponentArrays.getval.(fastindices(:a, :b, :c)) == (:a, :b, :c)
     @test_deprecated fastindices(:a, Val(:b)) == (Val(:a), Val(:b))
 
-    @test collect(ComponentArrays.partition(collect(1:12), 3)) == [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]]
-    @test size(collect(ComponentArrays.partition(zeros(2, 2, 2), 1, 2, 2))[2, 1, 1]) == (1, 2, 2)
+    @test collect(ComponentArrays.partition(collect(1:12), 3)) ==
+          [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]]
+    @test size(collect(ComponentArrays.partition(zeros(2, 2, 2), 1, 2, 2))[2, 1, 1]) ==
+          (1, 2, 2)
 end
 
 @testset "Construction" begin
-    @test ca == ComponentArray(a = 100, b = [4, 1.3], c = (a = (a = 1, b = [1.0, 4.4]), b = [0.4, 2, 1, 45]))
+    @test ca == ComponentArray(a = 100, b = [4, 1.3], c = (
+        a = (a = 1, b = [1.0, 4.4]), b = [0.4, 2, 1, 45]))
     @test ca_Float32 == ComponentArray(Float32.(a), ax)
     @test eltype(ComponentArray{ForwardDiff.Dual}(nt)) == ForwardDiff.Dual
     @test ca_composed.b isa ComponentArray
@@ -75,7 +80,7 @@ end
     @test typeof(ComponentArray(undef, (ax,))) == typeof(ca)
     @test typeof(ComponentArray(undef, (ax, ax))) == typeof(cmat)
     @test typeof(ComponentArray{Float32}(undef, (ax,))) == typeof(ca_Float32)
-    @test typeof(ComponentArray{MVector{10,Float64}}(undef, (ax,))) == typeof(ca_MVector)
+    @test typeof(ComponentArray{MVector{10, Float64}}(undef, (ax,))) == typeof(ca_MVector)
 
     # Entry from Dict
     dict1 = Dict(:a => rand(5), :b => rand(5, 5))
@@ -83,7 +88,8 @@ end
     @test ComponentArray(dict1) isa ComponentArray
     @test ComponentArray(dict2).b isa ComponentArray
 
-    @test ca == ComponentVector(a = 100, b = [4, 1.3], c = (a = (a = 1, b = [1.0, 4.4]), b = [0.4, 2, 1, 45]))
+    @test ca == ComponentVector(a = 100, b = [4, 1.3], c = (
+        a = (a = 1, b = [1.0, 4.4]), b = [0.4, 2, 1, 45]))
     @test cmat == ComponentMatrix(a .* a', ax, ax)
     @test_throws DimensionMismatch ComponentVector(sq_mat, ax)
     @test_throws DimensionMismatch ComponentMatrix(rand(11, 11, 11), ax, ax)
@@ -97,7 +103,8 @@ end
 
     # Issue #24
     @test ComponentVector(a = 1, b = 2.0f0) == ComponentVector{Float32}(a = 1.0, b = 2.0)
-    @test ComponentVector(a = 1, b = 2 + im) == ComponentVector{Complex{Int64}}(a = 1 + 0im, b = 2 + 1im)
+    @test ComponentVector(a = 1, b = 2 + im) ==
+          ComponentVector{Complex{Int64}}(a = 1 + 0im, b = 2 + 1im)
 
     # Issue #23
     sz = size(ca)
@@ -112,10 +119,10 @@ end
 
     # Issue #18
     temp_miss = ComponentArray(a = missing, b = [2, 1, 4, 5], c = [1, 2, 3])
-    @test eltype(temp_miss) == Union{Int64,Missing}
+    @test eltype(temp_miss) == Union{Int64, Missing}
     @test temp_miss.a === missing
     temp_noth = ComponentArray(a = nothing, b = [2, 1, 4, 5], c = [1, 2, 3])
-    @test eltype(temp_noth) == Union{Int64,Nothing}
+    @test eltype(temp_noth) == Union{Int64, Nothing}
     @test temp_noth.a === nothing
 
     # Issue #61
@@ -142,13 +149,14 @@ end
         @test ComponentArray(a = T[]) == ComponentVector{T}(a = T[])
         @test ComponentArray(a = T[], b = T[]) == ComponentVector{T}(a = T[], b = T[])
         @test ComponentArray(a = T[], b = (;)) == ComponentVector{T}(a = T[], b = T[])
-        @test ComponentArray(a = Any[one(Int32)], b=T[]) == ComponentVector{T}(a = [one(T)], b = T[])
+        @test ComponentArray(a = Any[one(Int32)], b = T[]) ==
+              ComponentVector{T}(a = [one(T)], b = T[])
     end
     @test ComponentArray(NamedTuple()) == ComponentVector{Any}()
-    @test ComponentArray(a=[]).a == []
+    @test ComponentArray(a = []).a == []
 
     # Make sure type promotion works correctly with StaticArrays of NamedTuples
-    @test ComponentVector(a=SA[(a=2, b=true)], b=false) isa ComponentVector{Int}
+    @test ComponentVector(a = SA[(a = 2, b = true)], b = false) isa ComponentVector{Int}
 end
 
 @testset "Attributes" begin
@@ -179,11 +187,11 @@ end
 
     # Issue #117
     kw_fun(; a, b) = a // b
-    x = ComponentArray(b=1, a=2)
+    x = ComponentArray(b = 1, a = 2)
     @test merge(NamedTuple(), x) == NamedTuple(x)
     @test kw_fun(; x...) == 2
 
-    @test length(ViewAxis(2:7, ShapedAxis((2,3)))) == 6
+    @test length(ViewAxis(2:7, ShapedAxis((2, 3)))) == 6
 end
 
 @testset "Get" begin
@@ -303,7 +311,7 @@ end
     @test cmat3[:c, :c] == reshape(cmat3check[6:11, 6:11], 3, 2, 3, 2)
 
     # https://discourse.julialang.org/t/no-method-error-reshape-when-solving-ode-with-componentarrays-jl/126342
-    x = ComponentVector(x=1.0, y=0.0, z=0.0)
+    x = ComponentVector(x = 1.0, y = 0.0, z = 0.0)
     @test reshape(x, axes(x)...) === x
     @test reshape(x, axes(x)) === x
     @test reshape(a, axes(ca)...) isa Vector{Float64}
@@ -376,42 +384,57 @@ end
         ca = ComponentArray(a = 1, b = 2, c = [3, 4], d = (a = [5, 6, 7], b = 8))
         cmat = ca * ca'
 
-        cidx = reshape((1:(2*3)) .+ 2, 2, 3)
+        cidx = reshape((1:(2 * 3)) .+ 2, 2, 3)
         ca2 = ComponentArray(a = 1, b = 2, c = cidx, d = (a = [9, 10, 11], b = 12))
 
         @testset "ComponentIndex" begin
             ax = getaxes(ca)[1]
-            @test ax[:a] == ax[1] == ComponentArrays.ComponentIndex(1, ComponentArrays.NullAxis())
-            @test ax[:c] == ax[3:4] == ComponentArrays.ComponentIndex(3:4, ShapedAxis(size(3:4)))
+            @test ax[:a] == ax[1] ==
+                  ComponentArrays.ComponentIndex(1, ComponentArrays.NullAxis())
+            @test ax[:c] == ax[3:4] ==
+                  ComponentArrays.ComponentIndex(3:4, ShapedAxis(size(3:4)))
             @test ax[:d] == ComponentArrays.ComponentIndex(5:8, Axis(a = r2v(1:3), b = 4))
-            @test ax[(:a, :c)] == ax[[:a, :c]] == ComponentArrays.ComponentIndex([1, 3, 4], Axis(a = 1, c = r2v(2:3)))
+            @test ax[(:a, :c)] == ax[[:a, :c]] ==
+                  ComponentArrays.ComponentIndex([1, 3, 4], Axis(a = 1, c = r2v(2:3)))
             ax2 = getaxes(ca2)[1]
-            @test ax2[(:a, :c)] == ax2[[:a, :c]] == ComponentArrays.ComponentIndex([1, 3:8...], Axis(a = 1, c = ViewAxis(2:7, ShapedAxis((2,3)))))
+            @test ax2[(:a, :c)] == ax2[[:a, :c]] ==
+                  ComponentArrays.ComponentIndex(
+                      [1, 3:8...], Axis(a = 1, c = ViewAxis(2:7, ShapedAxis((2, 3)))))
 
             @test length(ComponentArrays.ComponentIndex(1, ComponentArrays.NullAxis())) == 1
             @test length(ComponentArrays.ComponentIndex(3:4, ShapedAxis(size(3:4)))) == 2
-            @test length(ComponentArrays.ComponentIndex(5:8, Axis(a = r2v(1:3), b = 4))) == 4
-            @test length(ComponentArrays.ComponentIndex([1, 3, 4], Axis(a = 1, c = r2v(2:3)))) == 3
-            @test length(ComponentArrays.ComponentIndex([1, 3:8...], Axis(a = 1, c = ViewAxis(2:7, ShapedAxis((2,3)))))) == 7
+            @test length(ComponentArrays.ComponentIndex(5:8, Axis(a = r2v(1:3), b = 4))) ==
+                  4
+            @test length(ComponentArrays.ComponentIndex([1, 3, 4], Axis(a = 1, c = r2v(2:3)))) ==
+                  3
+            @test length(ComponentArrays.ComponentIndex(
+                [1, 3:8...], Axis(a = 1, c = ViewAxis(2:7, ShapedAxis((2, 3)))))) == 7
         end
 
         @testset "KeepIndex" begin
             @test ca[KeepIndex(:a)] == ca[KeepIndex(1)] == ComponentArray(a = 1)
             @test ca[KeepIndex(:b)] == ca[KeepIndex(2)] == ComponentArray(b = 2)
             @test ca[KeepIndex(:c)] == ca[KeepIndex(3:4)] == ComponentArray(c = [3, 4])
-            @test ca[KeepIndex(:d)] == ca[KeepIndex(5:8)] == ComponentArray(d = (a = [5, 6, 7], b = 8))
+            @test ca[KeepIndex(:d)] == ca[KeepIndex(5:8)] ==
+                  ComponentArray(d = (a = [5, 6, 7], b = 8))
 
             @test ca[KeepIndex(1:2)] == ComponentArray(a = 1, b = 2)
             @test ca[KeepIndex(1:3)] == ComponentArray([1, 2, 3], Axis(a = 1, b = 2)) # Drops c axis
-            @test ca[KeepIndex(2:5)] == ComponentArray([2, 3, 4, 5], Axis(b = 1, c = r2v(2:3)))
-            @test ca[KeepIndex(3:end)] == ComponentArray(c = [3, 4], d = (a = [5, 6, 7], b = 8))
+            @test ca[KeepIndex(2:5)] ==
+                  ComponentArray([2, 3, 4, 5], Axis(b = 1, c = r2v(2:3)))
+            @test ca[KeepIndex(3:end)] ==
+                  ComponentArray(c = [3, 4], d = (a = [5, 6, 7], b = 8))
 
             @test ca[KeepIndex(:)] == ca
 
-            @test cmat[KeepIndex(:a), KeepIndex(:b)] == ComponentArray(fill(2, 1, 1), Axis(a = 1), Axis(b = 1))
-            @test cmat[KeepIndex(:), KeepIndex(:c)] == ComponentArray((1:8) * (3:4)', getaxes(ca)[1], Axis(c = r2v(1:2)))
-            @test cmat[KeepIndex(2:5), 1:2] == ComponentArray((2:5) * (1:2)', Axis(b = 1, c = r2v(2:3)), ShapedAxis(size(1:2)))
-            @test cmat[KeepIndex(2), KeepIndex(3)] == ComponentArray(fill(2 * 3, 1, 1), Axis(b = 1), FlatAxis())
+            @test cmat[KeepIndex(:a), KeepIndex(:b)] ==
+                  ComponentArray(fill(2, 1, 1), Axis(a = 1), Axis(b = 1))
+            @test cmat[KeepIndex(:), KeepIndex(:c)] ==
+                  ComponentArray((1:8) * (3:4)', getaxes(ca)[1], Axis(c = r2v(1:2)))
+            @test cmat[KeepIndex(2:5), 1:2] ==
+                  ComponentArray((2:5) * (1:2)', Axis(b = 1, c = r2v(2:3)), ShapedAxis(size(1:2)))
+            @test cmat[KeepIndex(2), KeepIndex(3)] ==
+                  ComponentArray(fill(2 * 3, 1, 1), Axis(b = 1), FlatAxis())
             @test cmat[KeepIndex(2), 3] == ComponentArray(b = 2 * 3)
         end
     end
@@ -567,9 +590,11 @@ end
     @test ldiv!(tempmat, lu(cmat + I), cmat) isa ComponentMatrix
     @test ldiv!(getdata(tempmat), lu(cmat + I), cmat) isa AbstractMatrix
 
-    c = (a=2, b=[1, 2]);
-    x = ComponentArray(a=5, b=[(a=20., b=3.0), (a=33., b=2.0), (a=44., b=3.0)], c=c)
-    @test ldiv!(rand(10),Diagonal(x), x) isa Vector
+    c = (a = 2, b = [1, 2]);
+    x = ComponentArray(
+        a = 5, b = [
+            (a = 20.0, b = 3.0), (a = 33.0, b = 2.0), (a = 44.0, b = 3.0)], c = c)
+    @test ldiv!(rand(10), Diagonal(x), x) isa Vector
 
     vca2 = vcat(ca2', ca2')
     hca2 = hcat(ca2, ca2)
@@ -647,14 +672,15 @@ end
     @test getaxes(s2_D * s1_D) == (Axis(y2 = 1), Axis(u1 = 1))
     @test getaxes((s1_D * s2_D) * in2) == getaxes(s1_D * (s2_D * in2)) == (Axis(y1 = 1),)
     @test getaxes((s2_D * s1_D) * in1) == getaxes(s2_D * (s1_D * in1)) == (Axis(y2 = 1),)
-    @test getaxes(out1' * (s1_D * s2_D)) == getaxes(transpose(out1) * (s1_D * s2_D)) == (FlatAxis(), Axis(u2 = 1))
+    @test getaxes(out1' * (s1_D * s2_D)) == getaxes(transpose(out1) * (s1_D * s2_D)) ==
+          (FlatAxis(), Axis(u2 = 1))
 
     @test ComponentArrays.ArrayInterface.lu_instance(cmat).factors isa ComponentMatrix
     @test ComponentArrays.ArrayInterface.parent_type(cmat) === Matrix{Float64}
 end
 
 @testset "Static Unpack" begin
-    x = ComponentArray(a=5, b=[4, 1], c = [1 2; 3 4], d=(e=2, f=[6, 30.0]))
+    x = ComponentArray(a = 5, b = [4, 1], c = [1 2; 3 4], d = (e = 2, f = [6, 30.0]))
     @static_unpack a, b, c, d = x
     @static_unpack e, f = x.d .+ 0
 
@@ -689,12 +715,14 @@ end
         "c.b[1,1]",
         "c.b[2,1]",
         "c.b[1,2]",
-        "c.b[2,2]",
+        "c.b[2,2]"
     ]
     @test label2index(ca2, "c.b") == collect(11:14)
 
     # Issue #74
-    lab2 = labels(ComponentArray(a = 1, aa = ones(2), ab = [(a = 1, aa = ones(2)), (a = 1, aa = ones(2))], ac = (a = 1, ab = ones(2, 2))))
+    lab2 = labels(ComponentArray(
+        a = 1, aa = ones(2), ab = [(a = 1, aa = ones(2)), (a = 1, aa = ones(2))],
+        ac = (a = 1, ab = ones(2, 2))))
     @test label2index(lab2, "a") == [1]
     @test label2index(lab2, "aa") == collect(2:3)
     @test label2index(lab2, "ab") == collect(4:9)
@@ -723,138 +751,138 @@ end
 
     # Issue #193
     # Make sure we aren't doing type piracy on `reshape`
-    @test ndims(dropdims(ones(1,1), dims=(1,2))) == 0
+    @test ndims(dropdims(ones(1, 1), dims = (1, 2))) == 0
     @test reshape([1]) == fill(1, ())
 
     # Tests for stack function (introduced in Julia 1.9, always available in Julia 1.10+)
-        # `stack` was introduced in Julia 1.9
-        # Issue #254
-        x = ComponentVector(a=[1, 2])
-        y = ComponentVector(a=[3, 4])
-        xy = stack([x, y])
-        # The data in `xy` should be the same as what we'd get if we used plain Vectors:
-        @test getdata(xy) == stack(getdata.([x, y]))
-        # Check the axes.
-        xy_ax = getaxes(xy)
-        # Should have two axes since xy should be a ComponentMatrix.
-        @test length(xy_ax) == 2
-        # First axis should be the same as x.
-        @test xy_ax[1] == only(getaxes(x))
-        # Second axis should be a FlatAxis.
-        @test xy_ax[2] == FlatAxis()
+    # `stack` was introduced in Julia 1.9
+    # Issue #254
+    x = ComponentVector(a = [1, 2])
+    y = ComponentVector(a = [3, 4])
+    xy = stack([x, y])
+    # The data in `xy` should be the same as what we'd get if we used plain Vectors:
+    @test getdata(xy) == stack(getdata.([x, y]))
+    # Check the axes.
+    xy_ax = getaxes(xy)
+    # Should have two axes since xy should be a ComponentMatrix.
+    @test length(xy_ax) == 2
+    # First axis should be the same as x.
+    @test xy_ax[1] == only(getaxes(x))
+    # Second axis should be a FlatAxis.
+    @test xy_ax[2] == FlatAxis()
 
-        # Does the dims argument to stack work?
-        # Using `dims=2` should be the same as the default value.
-        xy2 = stack([x, y]; dims=2)
-        @test xy2 == xy
-        # Using `dims=1` should stack things vertically.
-        xy3 = stack([x, y]; dims=1)
-        @test all(xy3[1, :a] .== xy[:a, 1])
-        @test all(xy3[2, :a] .== xy[:a, 2])
+    # Does the dims argument to stack work?
+    # Using `dims=2` should be the same as the default value.
+    xy2 = stack([x, y]; dims = 2)
+    @test xy2 == xy
+    # Using `dims=1` should stack things vertically.
+    xy3 = stack([x, y]; dims = 1)
+    @test all(xy3[1, :a] .== xy[:a, 1])
+    @test all(xy3[2, :a] .== xy[:a, 2])
 
-        # But can we stack 2D arrays?
-        x = ComponentVector(a=[1, 2])
-        y = ComponentVector(b=[3, 4])
-        X = x .* y'
-        Y = x .* y' .+ 4
-        XY = stack([X, Y])
-        # The data in `XY` should be the same as what we'd get if we used plain Vectors:
-        @test getdata(XY) == stack(getdata.([X, Y]))
-        # Check the axes.
-        XY_ax = getaxes(XY)
-        # Should have three axes since XY should be a 3D ComponentArray.
-        @test length(XY_ax) == 3
-        # First two axes should be the same as XY.
-        @test XY_ax[1] == getaxes(XY)[1]
-        @test XY_ax[2] == getaxes(XY)[2]
-        # Third should be a FlatAxis.
-        @test XY_ax[3] == FlatAxis()
-        # Should test indexing too.
-        @test all(XY[:a, :b, 1] .== X)
-        @test all(XY[:a, :b, 2] .== Y)
+    # But can we stack 2D arrays?
+    x = ComponentVector(a = [1, 2])
+    y = ComponentVector(b = [3, 4])
+    X = x .* y'
+    Y = x .* y' .+ 4
+    XY = stack([X, Y])
+    # The data in `XY` should be the same as what we'd get if we used plain Vectors:
+    @test getdata(XY) == stack(getdata.([X, Y]))
+    # Check the axes.
+    XY_ax = getaxes(XY)
+    # Should have three axes since XY should be a 3D ComponentArray.
+    @test length(XY_ax) == 3
+    # First two axes should be the same as XY.
+    @test XY_ax[1] == getaxes(XY)[1]
+    @test XY_ax[2] == getaxes(XY)[2]
+    # Third should be a FlatAxis.
+    @test XY_ax[3] == FlatAxis()
+    # Should test indexing too.
+    @test all(XY[:a, :b, 1] .== X)
+    @test all(XY[:a, :b, 2] .== Y)
 
-        # Make sure the dims argument works.
-        # Using `dims=3` should be the same as the default value.
-        XY_d3 = stack([X, Y]; dims=3)
-        @test XY_d3 == XY
-        # Using `dims=2` stacks along the second axis.
-        XY_d2 = stack([X, Y]; dims=2)
-        @test all(XY_d2[:a, 1, :b] .== XY[:a, :b, 1])
-        @test all(XY_d2[:a, 2, :b] .== XY[:a, :b, 2])
-        # Using `dims=1` stacks along the first axis.
-        XY_d1 = stack([X, Y]; dims=1)
-        @test all(XY_d1[1, :a, :b] .== XY[:a, :b, 1])
-        @test all(XY_d1[2, :a, :b] .== XY[:a, :b, 2])
+    # Make sure the dims argument works.
+    # Using `dims=3` should be the same as the default value.
+    XY_d3 = stack([X, Y]; dims = 3)
+    @test XY_d3 == XY
+    # Using `dims=2` stacks along the second axis.
+    XY_d2 = stack([X, Y]; dims = 2)
+    @test all(XY_d2[:a, 1, :b] .== XY[:a, :b, 1])
+    @test all(XY_d2[:a, 2, :b] .== XY[:a, :b, 2])
+    # Using `dims=1` stacks along the first axis.
+    XY_d1 = stack([X, Y]; dims = 1)
+    @test all(XY_d1[1, :a, :b] .== XY[:a, :b, 1])
+    @test all(XY_d1[2, :a, :b] .== XY[:a, :b, 2])
 
-        # Issue #254, tuple of arrays:
-        x = ComponentVector(a=[1, 2])
-        y = ComponentVector(b=[3, 4])
-        Xstack1 = stack((x, y, x); dims=1)
-        Xstack1_noca = stack((getdata(x), getdata(y), getdata(x)); dims=1)
-        @test all(Xstack1 .== Xstack1_noca)
-        @test all(Xstack1[1, :a] .== Xstack1_noca[1, :])
-        @test all(Xstack1[2, :a] .== Xstack1_noca[2, :])
+    # Issue #254, tuple of arrays:
+    x = ComponentVector(a = [1, 2])
+    y = ComponentVector(b = [3, 4])
+    Xstack1 = stack((x, y, x); dims = 1)
+    Xstack1_noca = stack((getdata(x), getdata(y), getdata(x)); dims = 1)
+    @test all(Xstack1 .== Xstack1_noca)
+    @test all(Xstack1[1, :a] .== Xstack1_noca[1, :])
+    @test all(Xstack1[2, :a] .== Xstack1_noca[2, :])
 
-        # Issue #254, Array of tuples.
-        Xstack2 = stack(ComponentArray(a=(1,2,3), b=(4,5,6)))
-        Xstack2_noca = stack([(1,2,3), (4,5,6)])
-        @test all(Xstack2 .== Xstack2_noca)
-        @test all(Xstack2[:, :a] .== Xstack2_noca[:, 1])
-        @test all(Xstack2[:, :b] .== Xstack2_noca[:, 2])
+    # Issue #254, Array of tuples.
+    Xstack2 = stack(ComponentArray(a = (1, 2, 3), b = (4, 5, 6)))
+    Xstack2_noca = stack([(1, 2, 3), (4, 5, 6)])
+    @test all(Xstack2 .== Xstack2_noca)
+    @test all(Xstack2[:, :a] .== Xstack2_noca[:, 1])
+    @test all(Xstack2[:, :b] .== Xstack2_noca[:, 2])
 
-        Xstack2_d1 = stack(ComponentArray(a=(1,2,3), b=(4,5,6)); dims=1)
-        Xstack2_noca_d1 = stack([(1,2,3), (4,5,6)]; dims=1)
-        @test all(Xstack2_d1 .== Xstack2_noca_d1)
-        @test all(Xstack2_d1[:a, :] .== Xstack2_noca_d1[1, :])
-        @test all(Xstack2_d1[:b, :] .== Xstack2_noca_d1[2, :])
+    Xstack2_d1 = stack(ComponentArray(a = (1, 2, 3), b = (4, 5, 6)); dims = 1)
+    Xstack2_noca_d1 = stack([(1, 2, 3), (4, 5, 6)]; dims = 1)
+    @test all(Xstack2_d1 .== Xstack2_noca_d1)
+    @test all(Xstack2_d1[:a, :] .== Xstack2_noca_d1[1, :])
+    @test all(Xstack2_d1[:b, :] .== Xstack2_noca_d1[2, :])
 
-        # Issue #254, generator of arrays.
-        Xstack3 = stack(ComponentArray(z=[x,x]) for x in 1:4)
-        Xstack3_noca = stack([x, x] for x in 1:4)
-        # That should give me
-        # [1 2 3 4;
-        #  1 2 3 4]
-        @test all(Xstack3 .== Xstack3_noca)
-        @test all(Xstack3[:z, 1] .== Xstack3_noca[:, 1])
-        @test all(Xstack3[:z, 2] .== Xstack3_noca[:, 2])
-        @test all(Xstack3[:z, 3] .== Xstack3_noca[:, 3])
-        @test all(Xstack3[:z, 4] .== Xstack3_noca[:, 4])
+    # Issue #254, generator of arrays.
+    Xstack3 = stack(ComponentArray(z = [x, x]) for x in 1:4)
+    Xstack3_noca = stack([x, x] for x in 1:4)
+    # That should give me
+    # [1 2 3 4;
+    #  1 2 3 4]
+    @test all(Xstack3 .== Xstack3_noca)
+    @test all(Xstack3[:z, 1] .== Xstack3_noca[:, 1])
+    @test all(Xstack3[:z, 2] .== Xstack3_noca[:, 2])
+    @test all(Xstack3[:z, 3] .== Xstack3_noca[:, 3])
+    @test all(Xstack3[:z, 4] .== Xstack3_noca[:, 4])
 
-        Xstack3_d1 = stack(ComponentArray(z=[x,x]) for x in 1:4; dims=1)
-        Xstack3_noca_d1 = stack([x, x] for x in 1:4; dims=1)
-        # That should give me
-        # [1 1;
-        #  2 2;
-        #  3 3;
-        #  4 4;]
-        @test all(Xstack3_d1 .== Xstack3_noca_d1)
-        @test all(Xstack3_d1[1, :z] .== Xstack3_noca_d1[1, :])
-        @test all(Xstack3_d1[2, :z] .== Xstack3_noca_d1[2, :])
-        @test all(Xstack3_d1[3, :z] .== Xstack3_noca_d1[3, :])
-        @test all(Xstack3_d1[4, :z] .== Xstack3_noca_d1[4, :])
+    Xstack3_d1 = stack(ComponentArray(z = [x, x]) for x in 1:4; dims = 1)
+    Xstack3_noca_d1 = stack([x, x] for x in 1:4; dims = 1)
+    # That should give me
+    # [1 1;
+    #  2 2;
+    #  3 3;
+    #  4 4;]
+    @test all(Xstack3_d1 .== Xstack3_noca_d1)
+    @test all(Xstack3_d1[1, :z] .== Xstack3_noca_d1[1, :])
+    @test all(Xstack3_d1[2, :z] .== Xstack3_noca_d1[2, :])
+    @test all(Xstack3_d1[3, :z] .== Xstack3_noca_d1[3, :])
+    @test all(Xstack3_d1[4, :z] .== Xstack3_noca_d1[4, :])
 
-        # Issue #254, map then stack.
-        Xstack4_d1 = stack(x -> ComponentArray(a=x, b=[x+1,x+2]), [5 6; 7 8]; dims=1)  # map then stack
-        Xstack4_noca_d1 = stack(x -> [x, x+1, x+2], [5 6; 7 8]; dims=1)  # map then stack
-        @test all(Xstack4_d1 .== Xstack4_noca_d1)
-        @test all(Xstack4_d1[:, :a] .== Xstack4_noca_d1[:, 1])
-        @test all(Xstack4_d1[:, :b] .== Xstack4_noca_d1[:, 2:3])
+    # Issue #254, map then stack.
+    Xstack4_d1 = stack(x -> ComponentArray(a = x, b = [x+1, x+2]), [5 6; 7 8]; dims = 1)  # map then stack
+    Xstack4_noca_d1 = stack(x -> [x, x+1, x+2], [5 6; 7 8]; dims = 1)  # map then stack
+    @test all(Xstack4_d1 .== Xstack4_noca_d1)
+    @test all(Xstack4_d1[:, :a] .== Xstack4_noca_d1[:, 1])
+    @test all(Xstack4_d1[:, :b] .== Xstack4_noca_d1[:, 2:3])
 
-        Xstack4_d2 = stack(x -> ComponentArray(a=x, b=[x+1,x+2]), [5 6; 7 8]; dims=2)  # map then stack
-        Xstack4_noca_d2 = stack(x -> [x, x+1, x+2], [5 6; 7 8]; dims=2)  # map then stack
-        @test all(Xstack4_d2 .== Xstack4_noca_d2)
-        @test all(Xstack4_d2[:a, :] .== Xstack4_noca_d2[1, :])
-        @test all(Xstack4_d2[:b, :] .== Xstack4_noca_d2[2:3, :])
+    Xstack4_d2 = stack(x -> ComponentArray(a = x, b = [x+1, x+2]), [5 6; 7 8]; dims = 2)  # map then stack
+    Xstack4_noca_d2 = stack(x -> [x, x+1, x+2], [5 6; 7 8]; dims = 2)  # map then stack
+    @test all(Xstack4_d2 .== Xstack4_noca_d2)
+    @test all(Xstack4_d2[:a, :] .== Xstack4_noca_d2[1, :])
+    @test all(Xstack4_d2[:b, :] .== Xstack4_noca_d2[2:3, :])
 
-        Xstack4_dcolon = stack(x -> ComponentArray(a=x, b=[x+1,x+2]), [5 6; 7 8]; dims=:)  # map then stack
-        Xstack4_noca_dcolon = stack(x -> [x, x+1, x+2], [5 6; 7 8]; dims=:)  # map then stack
-        @test all(Xstack4_dcolon .== Xstack4_noca_dcolon)
-        @test all(Xstack4_dcolon[:a, :, :] .== Xstack4_noca_dcolon[1, :, :])
-        @test all(Xstack4_dcolon[:b, :, :] .== Xstack4_noca_dcolon[2:3, :, :])
+    Xstack4_dcolon = stack(x -> ComponentArray(a = x, b = [x+1, x+2]), [5 6; 7 8]; dims = :)  # map then stack
+    Xstack4_noca_dcolon = stack(x -> [x, x+1, x+2], [5 6; 7 8]; dims = :)  # map then stack
+    @test all(Xstack4_dcolon .== Xstack4_noca_dcolon)
+    @test all(Xstack4_dcolon[:a, :, :] .== Xstack4_noca_dcolon[1, :, :])
+    @test all(Xstack4_dcolon[:b, :, :] .== Xstack4_noca_dcolon[2:3, :, :])
 
     # Test that we maintain higher-order components during vcat.
-    x = ComponentVector(a=rand(Float64, 2, 3, 4), b=rand(Float64, 4, 3, 2))
-    y = ComponentVector(c=rand(Float64, 3, 4, 2), d=rand(Float64, 3, 2, 4))
+    x = ComponentVector(a = rand(Float64, 2, 3, 4), b = rand(Float64, 4, 3, 2))
+    y = ComponentVector(c = rand(Float64, 3, 4, 2), d = rand(Float64, 3, 2, 4))
     xy = vcat(x, y)
     @test size(xy.a) == size(x.a)
     @test size(xy.b) == size(x.b)
@@ -866,16 +894,16 @@ end
     @test all(xy.d .≈ y.d)
 
     # Test fix https://github.com/Deltares/Ribasim/issues/2028
-    a = range(0.0, 1.0, length=0) |> collect
-    b = range(0.0, 1.0; length=2) |> collect
-    c = range(0.0, 1.0, length=3) |> collect
-    d = range(0.0, 1.0; length=0) |> collect
-    u = ComponentVector(a=a, b=b, c=c, d=d)
+    a = range(0.0, 1.0, length = 0) |> collect
+    b = range(0.0, 1.0; length = 2) |> collect
+    c = range(0.0, 1.0, length = 3) |> collect
+    d = range(0.0, 1.0; length = 0) |> collect
+    u = ComponentVector(a = a, b = b, c = c, d = d)
 
     function get_state_index(
-        idx::Int,
-        ::ComponentVector{A, B, <:Tuple{<:Axis{NT}}},
-        component_name::Symbol
+            idx::Int,
+            ::ComponentVector{A, B, <:Tuple{<:Axis{NT}}},
+            component_name::Symbol
     ) where {A, B, NT}
         for (comp, range) in pairs(NT)
             if comp == component_name

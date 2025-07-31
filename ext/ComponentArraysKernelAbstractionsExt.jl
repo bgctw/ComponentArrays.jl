@@ -12,7 +12,7 @@ end
 
 function ComponentArrays.fill_componentarray_ka!(A::ComponentArray{T}, x) where {T}
     kernel! = ca_fill_kernel!(KernelAbstractions.get_backend(A))
-    kernel!(A, x; ndrange=length(A))
+    kernel!(A, x; ndrange = length(A))
     return A
 end
 

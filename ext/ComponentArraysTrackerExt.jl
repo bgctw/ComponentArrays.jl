@@ -14,7 +14,7 @@ Tracker.extract_grad!(ca::ComponentArray) = Tracker.extract_grad!(getdata(ca))
 Tracker.data(ca::ComponentArray) = ComponentArray(Tracker.data(getdata(ca)), getaxes(ca))
 
 function Base.materialize(bc::Base.Broadcast.Broadcasted{Tracker.TrackedStyle, Nothing,
-    typeof(zero), <:Tuple{<:ComponentVector}})
+        typeof(zero), <:Tuple{<:ComponentVector}})
     ca = first(bc.args)
     return ComponentArray(zero.(getdata(ca)), getaxes(ca))
 end
@@ -27,7 +27,7 @@ end
 # For TrackedArrays ignore Base.maybeview
 ## Tracker with views doesn't work quite well
 @inline function Base.getproperty(x::ComponentVector{T, <:TrackedArray},
-    s::Symbol) where {T}
+        s::Symbol) where {T}
     return getproperty(x, Val(s))
 end
 

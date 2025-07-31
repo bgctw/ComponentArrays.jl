@@ -15,9 +15,9 @@ _second_axis(x::AbstractMatrix) = FlatAxis()
 _second_axis(x::ComponentMatrix) = getaxes(x)[2]
 _second_axis(x::AdjOrTransComponentVecOrMat) = getaxes(x)[2]
 
-_out_axes(::typeof(*), a, b::AbstractVector) = (_first_axis(a), )
+_out_axes(::typeof(*), a, b::AbstractVector) = (_first_axis(a),)
 _out_axes(::typeof(*), a, b::AbstractMatrix) = (_first_axis(a), _second_axis(b))
-_out_axes(::typeof(\), a, b::AbstractVector) = (_second_axis(a), )
+_out_axes(::typeof(\), a, b::AbstractVector) = (_second_axis(a),)
 _out_axes(::typeof(\), a, b::AbstractMatrix) = (_second_axis(a), _second_axis(b))
 _out_axes(::typeof(/), a::AbstractMatrix, b) = (_first_axis(a), _first_axis(b))
 
@@ -32,12 +32,13 @@ for op in [:*, :\, :/]
     end
     for (adj, Adj) in zip([:adjoint, :transpose], [:Adjoint, :Transpose])
         @eval begin
-            function Base.$op(aᵀ::$Adj{T,<:ComponentVector}, B::AbstractComponentMatrix) where {T}
+            function Base.$op(aᵀ::$Adj{T, <:ComponentVector}, B::AbstractComponentMatrix) where {T}
                 cᵀ = $op(getdata(aᵀ), getdata(B))
                 ax2 = _out_axes($op, aᵀ, B)[2]
                 return $adj(ComponentArray(cᵀ', ax2))
             end
-            function Base.$op(A::$Adj{T,<:CV}, B::CV) where {T<:Real, CV<:ComponentVector{T}}
+            function Base.$op(A::$Adj{T, <:CV}, B::CV) where {
+                    T <: Real, CV <: ComponentVector{T}}
                 return $op(getdata(A), getdata(B))
             end
         end

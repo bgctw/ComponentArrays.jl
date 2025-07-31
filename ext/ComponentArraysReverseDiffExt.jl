@@ -2,9 +2,12 @@ module ComponentArraysReverseDiffExt
 
 using ComponentArrays, ReverseDiff
 
-const TrackedComponentArray{V,D,N,DA,A,Ax} = ReverseDiff.TrackedArray{V,D,N,ComponentArray{V,N,A,Ax},DA}
+const TrackedComponentArray{
+    V, D, N, DA, A, Ax} = ReverseDiff.TrackedArray{V, D, N, ComponentArray{V, N, A, Ax}, DA}
 
-maybe_tracked_array(val::AbstractArray, der, tape, inds, origin) = ReverseDiff.TrackedArray(val, der, tape)
+function maybe_tracked_array(val::AbstractArray, der, tape, inds, origin)
+    ReverseDiff.TrackedArray(val, der, tape)
+end
 function maybe_tracked_array(val::Real, der, tape, inds, origin::AbstractVector)
     ax = getaxes(ReverseDiff.value(origin))[1]
     i = ax[inds[1]].idx
@@ -12,7 +15,7 @@ function maybe_tracked_array(val::Real, der, tape, inds, origin::AbstractVector)
 end
 
 for f in [:getindex, :view]
-    @eval function Base.$f(tca::TrackedComponentArray, inds::Union{Symbol,Val}...)
+    @eval function Base.$f(tca::TrackedComponentArray, inds::Union{Symbol, Val}...)
         val = $f(ReverseDiff.value(tca), inds...)
         der = Base.maybeview(ReverseDiff.deriv(tca), inds...)
         t = ReverseDiff.tape(tca)
@@ -31,7 +34,8 @@ function Base.getproperty(tca::TrackedComponentArray, s::Symbol)
     end
 end
 
-function Base.propertynames(::TrackedComponentArray{V,D,N,DA,A,Tuple{Ax}}) where {V,D,N,DA,A,Ax<:ComponentArrays.AbstractAxis}
+function Base.propertynames(::TrackedComponentArray{V, D, N, DA, A,
+        Tuple{Ax}}) where {V, D, N, DA, A, Ax <: ComponentArrays.AbstractAxis}
     return propertynames(ComponentArrays.indexmap(Ax))
 end
 
@@ -42,6 +46,7 @@ end
 
 @inline ComponentArrays.__value(x::AbstractArray{<:ReverseDiff.TrackedReal}) = ReverseDiff.value.(x)
 @inline ComponentArrays.__value(x::ReverseDiff.TrackedArray) = ReverseDiff.value(x)
-@inline ComponentArrays.__value(x::TrackedComponentArray) = ComponentArray(ComponentArrays.__value(getdata(x)), getaxes(x))
+@inline ComponentArrays.__value(x::TrackedComponentArray) = ComponentArray(
+    ComponentArrays.__value(getdata(x)), getaxes(x))
 
 end
