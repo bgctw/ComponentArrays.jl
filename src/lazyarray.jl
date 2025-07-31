@@ -4,16 +4,18 @@
 Wrapper around Base.Generator that also indexes like an array. This is needed to make ComponentArrays
 that hold arrays of ComponentArrays
 """
-struct LazyArray{T,N,G} <: AbstractArray{T,N}
+struct LazyArray{T, N, G} <: AbstractArray{T, N}
     gen::G
-    LazyArray{T}(gen) where T = new{T, ndims(gen), typeof(gen)}(gen)
-    LazyArray(gen::Base.Generator{A,F}) where {A,F} = new{eltype(A), ndims(gen), typeof(gen)}(gen)
+    LazyArray{T}(gen) where {T} = new{T, ndims(gen), typeof(gen)}(gen)
+    function LazyArray(gen::Base.Generator{A, F}) where {A, F}
+        new{eltype(A), ndims(gen), typeof(gen)}(gen)
+    end
 end
 
-const LazyVector{T,G} = LazyArray{T,1,G}
-const LazyMatrix{T,G} = LazyArray{T,2,G}
+const LazyVector{T, G} = LazyArray{T, 1, G}
+const LazyMatrix{T, G} = LazyArray{T, 2, G}
 
-Base.getindex(a::LazyArray, i...) =  _un_iter(getfield(a, :gen), i)
+Base.getindex(a::LazyArray, i...) = _un_iter(getfield(a, :gen), i)
 
 function Base.setindex!(a::LazyArray, val, i...)
     a[i...] .= val
@@ -41,11 +43,11 @@ Base.length(a::LazyArray) = length(getfield(a, :gen))
 
 Base.size(a::LazyArray) = size(getfield(a, :gen))
 
-Base.eltype(::LazyArray{T,N,G}) where {T,N,G} = T
+Base.eltype(::LazyArray{T, N, G}) where {T, N, G} = T
 
 Base.show(io::IO, a::LazyArray) = show(io, collect(a))
 function Base.show(io::IO, mime::MIME"text/plain", a::LazyArray)
     arr = collect(a)
     rep = repr(mime, arr)
-    return print(io, replace(rep, r"(\d+-element )?((Vector|Array){(.+)?})" => s"\1LazyArray{\4}"; count=1))
+    return print(io, replace(rep, r"(\d+-element )?((Vector|Array){(.+)?})" => s"\1LazyArray{\4}"; count = 1))
 end

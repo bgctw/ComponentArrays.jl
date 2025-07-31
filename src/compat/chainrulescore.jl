@@ -1,4 +1,5 @@
-function ChainRulesCore.rrule(::typeof(getproperty), x::ComponentArray, s::Union{Symbol,Val})
+function ChainRulesCore.rrule(::typeof(getproperty), x::ComponentArray, s::Union{
+        Symbol, Val})
     return getproperty(x, s), Δ -> getproperty_adjoint(ChainRulesCore.unthunk(Δ), x, s)
 end
 
@@ -22,31 +23,43 @@ function __setproperty!(::Val{true}, x, s::Val, Δ)
     return x
 end
 
-function ChainRulesCore.rrule(cfg::ChainRulesCore.RuleConfig{>:ChainRulesCore.HasReverseMode},
-    ::typeof(__setproperty!), x, s, Δ)
+function ChainRulesCore.rrule(
+        cfg::ChainRulesCore.RuleConfig{>:ChainRulesCore.HasReverseMode},
+        ::typeof(__setproperty!), x, s, Δ)
     y_, pb_f = ChainRulesCore.rrule_via_ad(cfg, __setproperty!, Val(true), x, s, Δ)
     return y_, pb_f
 end
 
-ChainRulesCore.rrule(::typeof(getdata), x::ComponentArray) = getdata(x), Δ -> (ChainRulesCore.NoTangent(), ComponentArray(ChainRulesCore.unthunk(Δ), getaxes(x)))
-
-ChainRulesCore.rrule(::Type{ComponentArray}, data, axes) = ComponentArray(data, axes), Δ -> (ChainRulesCore.NoTangent(), getdata(ChainRulesCore.unthunk(Δ)), ChainRulesCore.NoTangent())
-
-function ChainRulesCore.ProjectTo(ca::ComponentArray)
-    return ChainRulesCore.ProjectTo{ComponentArray}(; project=ChainRulesCore.ProjectTo(getdata(ca)), axes=getaxes(ca))
+function ChainRulesCore.rrule(::typeof(getdata), x::ComponentArray)
+    getdata(x),
+    Δ -> (ChainRulesCore.NoTangent(), ComponentArray(ChainRulesCore.unthunk(Δ), getaxes(x)))
 end
 
-(p::ChainRulesCore.ProjectTo{ComponentArray})(dx::AbstractArray) = ComponentArray(p.project(dx), p.axes)
+function ChainRulesCore.rrule(::Type{ComponentArray}, data, axes)
+    ComponentArray(data, axes),
+    Δ -> (ChainRulesCore.NoTangent(), getdata(ChainRulesCore.unthunk(Δ)),
+        ChainRulesCore.NoTangent())
+end
+
+function ChainRulesCore.ProjectTo(ca::ComponentArray)
+    return ChainRulesCore.ProjectTo{ComponentArray}(;
+        project = ChainRulesCore.ProjectTo(getdata(ca)), axes = getaxes(ca))
+end
+
+function (p::ChainRulesCore.ProjectTo{ComponentArray})(dx::AbstractArray)
+    ComponentArray(p.project(dx), p.axes)
+end
 
 # Prevent double projection
 (p::ChainRulesCore.ProjectTo{ComponentArray})(dx::ComponentArray) = dx
 
-function (p::ChainRulesCore.ProjectTo{ComponentArray})(t::ChainRulesCore.Tangent{A,<:NamedTuple}) where {A}
+function (p::ChainRulesCore.ProjectTo{ComponentArray})(t::ChainRulesCore.Tangent{
+        A, <:NamedTuple}) where {A}
     nt = Functors.fmap(ChainRulesCore.backing, ChainRulesCore.backing(t))
     return ComponentArray(nt)
 end
 
-function ChainRulesCore.rrule(::Type{CA}, nt::NamedTuple) where {CA<:ComponentArray}
+function ChainRulesCore.rrule(::Type{CA}, nt::NamedTuple) where {CA <: ComponentArray}
     y = CA(nt)
 
     ∇NamedTupleToComponentArray(Δ) = ∇NamedTupleToComponentArray(ChainRulesCore.unthunk(Δ))

@@ -9,7 +9,7 @@ F_view_val(ca) = F(@view(ca[Val(:a)]), ca[Val(:x)])
 F_view_sym(ca) = F(@view(ca[:a]), ca[:x])
 F_prop(ca) = F(ca.a, ca.x)
 
-ca = ComponentArray(a=[2, 3], x=2.0)
+ca = ComponentArray(a = [2, 3], x = 2.0)
 truth = ComponentArray(a = [32, 48], x = 156)
 
 @testset "$(nameof(F_))" for F_ in (F_idx_val, F_idx_sym, F_view_val, F_view_sym, F_prop)
@@ -28,13 +28,13 @@ truth = ComponentArray(a = [32, 48], x = 156)
     zygote_full = Zygote.gradient(F_, ca)[1]
     @test zygote_full ≈ truth
 
-    @test ComponentArray(x=4.0,) ≈ Zygote.gradient(ComponentArray(x=2,)) do c
-        (;c...,).x^2
+    @test ComponentArray(x = 4.0,) ≈ Zygote.gradient(ComponentArray(x = 2,)) do c
+        (; c...,).x^2
     end[1]
 
     # Issue #148
-    ps = ComponentArray(;bias = rand(4))
-    out = Zygote.gradient(x -> sum(x.^3 .+ ps.bias), Zygote.seed(rand(4),Val(12)))[1]
+    ps = ComponentArray(; bias = rand(4))
+    out = Zygote.gradient(x -> sum(x .^ 3 .+ ps.bias), Zygote.seed(rand(4), Val(12)))[1]
     @test out isa Vector{<:ForwardDiff.Dual}
 end
 
@@ -108,7 +108,7 @@ end
 
 @testset "Issues" begin
     function mysum(x::AbstractVector)
-        y = ComponentVector(x=x)
+        y = ComponentVector(x = x)
         z = ComponentVector(; z = x .^ 2)
         return sum(y) + sum(abs2, z)
     end
@@ -130,5 +130,6 @@ end
 @testset "ArrayInterface restructure TrackedArray" begin
     ps = ComponentArray(; a = rand(2), b = (; c = rand(2)))
     ps_tracked = Tracker.param(ps)
-    @test ArrayInterface.restructure(ps, ps_tracked) isa ComponentVector{<:Any, <:Tracker.TrackedArray}
+    @test ArrayInterface.restructure(ps, ps_tracked) isa
+          ComponentVector{<:Any, <:Tracker.TrackedArray}
 end

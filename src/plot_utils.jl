@@ -5,8 +5,10 @@
 Get string labels for for each index of a `ComponentVector`. Useful for automatic plot legend labelling.
 
 # Examples
+
 ```jldoctest
-julia> x = ComponentArray(a=5, b=[(a=(a=20,b=1), b=0), (a=(a=33,b=1), b=0)], c=(a=(a=2, b=[1,2]), b=[1. 2.; 5 6]))
+julia> x = ComponentArray(a = 5, b = [(a = (a = 20, b = 1), b = 0), (a = (a = 33, b = 1), b = 0)],
+           c = (a = (a = 2, b = [1, 2]), b = [1.0 2.0; 5 6]))
 ComponentVector{Float64}(a = 5.0, b = ComponentVector{Float64, SubArray{Float64, 1, Vector{Float64}, Tuple{UnitRange{Int64}}, true}, Tuple{Axis{(a = ViewAxis(1:2, Axis(a = 1, b = 2)), b = 3)}}}[(a = (a = 20.0, b = 1.0), b = 0.0), (a = (a = 33.0, b = 1.0), b = 0.0)], c = (a = (a = 2.0, b = [1.0, 2.0]), b = [1.0 2.0; 5.0 6.0]))
 
 julia> ComponentArrays.labels(x)
@@ -26,18 +28,21 @@ julia> ComponentArrays.labels(x)
  "c.b[1,2]"
  "c.b[2,2]"
 ```
+
 see also [`label2index`](@ref)
 """
-labels(x::ComponentVector) = map(x->x[firstindex(x)+1:end], _labels(x))
+labels(x::ComponentVector) = map(x->x[(firstindex(x) + 1):end], _labels(x))
 labels(x) = map(x->x[firstindex(x):end], _labels(x))
 
-
 _labels(x::ComponentVector) = vcat((".$(key)" .* _labels(x[key]) for key in keys(x))...)
-_labels(x::AbstractArray{<:ComponentArray}) = vcat(("[$i]" .* _labels(x[i]) for i in eachindex(x))...)
+function _labels(x::AbstractArray{<:ComponentArray})
+    vcat(("[$i]" .* _labels(x[i]) for i in eachindex(x))...)
+end
 _labels(x::LazyArray) = vcat(("[$i]" .* _labels(x[i]) for i in eachindex(x))...)
-_labels(x::AbstractArray) = vcat(("[" * join(i.I, ",") * "]" for i in CartesianIndices(x))...)
+function _labels(x::AbstractArray)
+    vcat(("[" * join(i.I, ",") * "]" for i in CartesianIndices(x))...)
+end
 _labels(x) = ""
-
 
 """
     label2index(x::ComponentVector, str::AbstractString)
@@ -46,8 +51,10 @@ _labels(x) = ""
 Convert labels made by `labels` function to an array of flat indices of a `ComponentVector`.
 
 # Examples
+
 ```jldoctest
-julia> x = ComponentArray(a=5, b=[(a=(a=20,b=1), b=0), (a=(a=33,b=1), b=0)], c=(a=(a=2, b=[1,2]), b=[1. 2.; 5 6]))
+julia> x = ComponentArray(a = 5, b = [(a = (a = 20, b = 1), b = 0), (a = (a = 33, b = 1), b = 0)],
+           c = (a = (a = 2, b = [1, 2]), b = [1.0 2.0; 5 6]))
 ComponentVector{Float64}(a = 5.0, b = ComponentVector{Float64, SubArray{Float64, 1, Vector{Float64}, Tuple{UnitRange{Int64}}, true}, Tuple{Axis{(a = ViewAxis(1:2, Axis(a = 1, b = 2)), b = 3)}}}[(a = (a = 20.0, b = 1.0), b = 0.0), (a = (a = 33.0, b = 1.0), b = 0.0)], c = (a = (a = 2.0, b = [1.0, 2.0]), b = [1.0 2.0; 5.0 6.0]))
 
 julia> ComponentArrays.labels(x)

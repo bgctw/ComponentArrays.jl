@@ -10,9 +10,7 @@ in [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl)
 [Optim.jl](https://github.com/JuliaNLSolvers/Optim.jl), but anything that requires
 flat vectors is fair game.
 
-
 ```@contents
 Pages = ["examples/example1.md"]
 Depth = 2
 ```
-
