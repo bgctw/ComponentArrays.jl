@@ -83,7 +83,7 @@ for (fname, op) in [(:sum, :(Base.add_sum)), (:prod, :(Base.mul_prod)),
     end
 end
 
-function ComponentArray(nt::NamedTuple{names,
+function ComponentArrays.ComponentArray(nt::NamedTuple{names,
         <:Tuple{Vararg{Union{GPUArrays.AbstractGPUArray, GPUComponentArray}}}}) where {names}
     T = recursive_eltype(nt)
     gpuarray = getdata(first(nt))
