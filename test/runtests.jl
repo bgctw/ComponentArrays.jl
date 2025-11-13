@@ -699,6 +699,50 @@ end
     @test c isa SMatrix{2, 2, Float64, 4}
 end
 
+@testset "Static Unpack columns" begin
+    #xs = ComponentMatrix(collect(reshape(1:(2*5),2,5)), (Axis(i=1:2,), Axis(a=1, b=2:4, c=5:5)))
+    xs = ComponentMatrix(collect(reshape(1:(2*5),2,5)), (Shaped1DAxis((2,)), Axis(a=1, b=2:4, c=5:5)))
+    @static_unpack_col a, b, c = xs # known size
+    @test a isa SVector{2, Int64}
+    @test a == getdata(xs)[:, 1]
+    @test b isa SMatrix{2, 3, Int64, 6}
+    @test b == getdata(xs)[:, 2:4]
+    @test c isa SMatrix{2, 1, Int64, 2}
+    @test c == getdata(xs)[:, 5:5]
+    #@macroexpand @static_unpack_col b = xs 
+    @inferred ComponentArrays.static_getproperty_col(xs, Val{:b}())
+    #
+    x = ComponentMatrix(collect(reshape(1:(2*4),2,4)), (FlatAxis(), Axis(a=1, b=2:4)))
+    @static_unpack_col b = x
+    @test b isa SubArray
+    @test b == getdata(xs)[:, 2:4]
+    @inferred ComponentArrays.static_getproperty_col(x, Val{:b}())
+end
+
+() -> begin
+    # test on CuArray
+    #using CUDA, cuDNN
+    xs = ComponentMatrix(
+        CuArray(reshape(1:(2*5),2,5)), 
+        (Shaped1DAxis((2,))),  Axis(a=1, b=2:4, c=5:5))
+
+end
+
+@testset "Static Unpack columns view" begin
+    #xs = ComponentMatrix(collect(reshape(1:(2*5),2,5)), (Axis(i=1:2,), Axis(a=1, b=2:4, c=5:5)))
+    xs = ComponentMatrix(collect(reshape(1:(2*5),2,5)), (Shaped1DAxis((2,)), Axis(a=1, b=2:4, c=5:5)))
+    @unpack_col_view a, b, c = xs 
+    @test a isa SubArray
+    @test a == getdata(xs)[:, 1]
+    @test b isa SubArray
+    @test b == getdata(xs)[:, 2:4]
+    @test c isa SubArray
+    @test c == getdata(xs)[:, 5:5]
+end
+
+
+
+
 @testset "Plot Utilities" begin
     lab = labels(ca2)
     @test lab == [

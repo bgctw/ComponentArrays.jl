@@ -51,7 +51,7 @@ export labels, label2index
 include("compat/chainrulescore.jl")
 
 include("compat/static_arrays.jl")
-export @static_unpack
+export @static_unpack, @static_unpack_col, @unpack_col_view
 
 include("compat/functors.jl")
 

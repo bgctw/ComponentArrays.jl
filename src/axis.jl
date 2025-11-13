@@ -62,12 +62,12 @@ const NullorFlatAxis = Union{NullAxis, FlatAxis}
 Preserves higher-dimensional array components in `ComponentArray`s (matrix components, for
 example)
 """
-struct ShapedAxis{Shape} <: AbstractAxis{nothing} end
+struct ShapedAxis{Shape} <: AbstractAxis{nothing} end 
 @inline ShapedAxis(Shape) = ShapedAxis{Shape}()
 # ShapedAxis(::Tuple{<:Int}) = FlatAxis()
 Base.length(::ShapedAxis{Shape}) where {Shape} = prod(Shape)
 
-struct Shaped1DAxis{Shape} <: AbstractAxis{nothing} end
+struct Shaped1DAxis{Shape} <: AbstractAxis{nothing} end # why nothing instead of NamedTuple()?
 ShapedAxis(shape::Tuple{<:Int}) = Shaped1DAxis{shape}()
 Shaped1DAxis(shape::Tuple{<:Int}) = Shaped1DAxis{shape}()
 Base.length(::Shaped1DAxis{Shape}) where {Shape} = only(Shape)
